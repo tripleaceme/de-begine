@@ -1,0 +1,103 @@
+"""
+Centralized configuration for the Mandera Analytics pipeline.
+All modules import from here — no hardcoded connection strings.
+"""
+
+import os
+from datetime import datetime, timezone
+
+
+# ── MongoDB Atlas ──────────────────────────────────────────────
+MONGO_URI = os.getenv("MONGO_URI")
+if not MONGO_URI:
+    raise EnvironmentError("MONGO_URI is not set. Provide your MongoDB Atlas connection string in .env")
+MONGO_DB = os.getenv("MONGO_DB", "mandera_analytics")
+
+
+MONGO_COLLECTIONS = {
+    "customers": "customers",
+    "products": "products",
+    "orders": "orders",
+}
+
+
+# ── Source generation settings (used by generator/) ────────────
+ORDERS_MIN = 2000
+ORDERS_MAX = 5000
+CUSTOMERS_MIN = 10
+CUSTOMERS_MAX = 20
+PRODUCTS_MIN = 5
+PRODUCTS_MAX = 10
+
+REGIONS = ["Mandera East", "Mandera West", "Mandera Central"]
+PAYMENT_STATUSES = ["paid", "failed", "pending"]
+
+PRODUCT_CATEGORIES = {
+    "Electronics": [
+        "Wireless Earbuds", "Power Bank", "USB-C Hub", "Bluetooth Speaker",
+        "Smart Watch", "Laptop Stand", "Webcam", "Portable SSD",
+        "Phone Case", "Screen Protector",
+    ],
+    "Groceries": [
+        "Rice 5kg", "Cooking Oil 3L", "Sugar 2kg", "Maize Flour 2kg",
+        "Tea Leaves 500g", "Milk Powder 900g", "Salt 1kg",
+        "Wheat Flour 2kg", "Pasta 500g", "Tomato Paste",
+    ],
+    "Clothing": [
+        "Cotton T-Shirt", "Denim Jeans", "Polo Shirt", "Hoodie",
+        "Khaki Trousers", "Sports Shorts", "Formal Shirt",
+        "Beanie Hat", "Canvas Shoes", "Leather Belt",
+    ],
+    "Home & Kitchen": [
+        "Water Bottle", "Thermos Flask", "Frying Pan", "Dinner Set",
+        "Storage Container", "Cutting Board", "Blender",
+        "Kettle", "Mop Set", "Towel Set",
+    ],
+}
+
+# ── PostgreSQL / table mappings ─────────────────────────────────────────────────
+POSTGRES_CONFIG = {
+    "host": os.getenv("POSTGRES_HOST", "localhost"),
+    "port": int(os.getenv("POSTGRES_PORT", 5432)),
+    "database": os.getenv("POSTGRES_DB", "mandera_warehouse"),
+    "user": os.getenv("POSTGRES_USER", "pipeline"),
+    "password": os.getenv("POSTGRES_PASSWORD", "pipeline_secret"),
+}
+
+POSTGRES_URL = (
+    f"postgresql://{POSTGRES_CONFIG['user']}:{POSTGRES_CONFIG['password']}"
+    f"@{POSTGRES_CONFIG['host']}:{POSTGRES_CONFIG['port']}"
+    f"/{POSTGRES_CONFIG['database']}"
+)
+
+RAW_TABLES = {
+    "customers": "raw.customers_raw",
+    "products": "raw.products_raw",
+    "orders": "raw.orders_raw",
+}
+
+STAGING_TABLES = {
+    "customers": "staging.customers_clean",
+    "products": "staging.products_clean",
+    "orders": "staging.orders_clean",
+}
+
+
+# ── MinIO ──────────────────────────────────────────────────────
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER", "minioadmin")
+MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin123")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "mandera-raw")
+
+
+
+def today_partition() -> str:
+    """Returns today's date as a MinIO partition path: YYYY/MM/DD/"""
+    now = datetime.now(timezone.utc)
+    return now.strftime("%Y/%m/%d/")
+
+
+def generate_batch_id() -> str:
+    """Auto-generate batch ID from current timestamp: 2026_03_23_0700"""
+    now = datetime.now(timezone.utc)
+    return now.strftime("%Y_%m_%d_%H%M")

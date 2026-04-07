@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Mandera Warehouse",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "mandera_warehouse",
+      "Username": "pipeline",
+      "PassFile": "/pgpass",
+      "SSLMode": "prefer"
+    }
+  }
+}
