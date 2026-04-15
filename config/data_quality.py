@@ -14,5 +14,14 @@ DATA_QUALITY_PROFILE = {
         "invalid_amount_rate": 0.02,
         "negative_amount_rate": 0.01,
         "invalid_status_rate": 0.01
+    },
+
+"products" = {
+    "duplicate_rate": 0.02,
+    "missing_name_rate": 0.01,
+    "invalid_price_rate": 0.02,
+    "zero_price_rate": 0.01,
+    "category_mismatch_rate": 0.02,
+    "schema_drift_rate": 0.05
     }
 }
