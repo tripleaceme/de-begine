@@ -5,13 +5,17 @@ All modules import from here — no hardcoded connection strings.
 
 import os
 from datetime import datetime, timezone
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 # ── MongoDB Atlas ──────────────────────────────────────────────
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise EnvironmentError("MONGO_URI is not set. Provide your MongoDB Atlas connection string in .env")
-MONGO_DB = os.getenv("MONGO_DB", "mandera_analytics")
+MONGO_DB = os.getenv("MONGO_DB")
 
 
 MONGO_COLLECTIONS = {
@@ -24,7 +28,7 @@ MONGO_COLLECTIONS = {
 # ── Source generation settings (used by generator/) ────────────
 ORDERS_MIN = 2000
 ORDERS_MAX = 5000
-CUSTOMERS_MIN = 10
+CUSTOMERS_MIN = 1
 CUSTOMERS_MAX = 20
 PRODUCTS_MIN = 5
 PRODUCTS_MAX = 10
@@ -57,11 +61,11 @@ PRODUCT_CATEGORIES = {
 
 # ── PostgreSQL / table mappings ─────────────────────────────────────────────────
 POSTGRES_CONFIG = {
-    "host": os.getenv("POSTGRES_HOST", "localhost"),
-    "port": int(os.getenv("POSTGRES_PORT", 5432)),
-    "database": os.getenv("POSTGRES_DB", "mandera_warehouse"),
-    "user": os.getenv("POSTGRES_USER", "pipeline"),
-    "password": os.getenv("POSTGRES_PASSWORD", "pipeline_secret"),
+    "host": os.getenv("POSTGRES_HOST"),
+    "port": int(os.getenv("POSTGRES_PORT")),
+    "database": os.getenv("POSTGRES_DB"),
+    "user": os.getenv("POSTGRES_USER"),
+    "password": os.getenv("POSTGRES_PASSWORD"),
 }
 
 POSTGRES_URL = (
@@ -70,6 +74,7 @@ POSTGRES_URL = (
     f"/{POSTGRES_CONFIG['database']}"
 )
 
+# schema.table_name
 RAW_TABLES = {
     "customers": "raw.customers_raw",
     "products": "raw.products_raw",
@@ -82,12 +87,25 @@ STAGING_TABLES = {
     "orders": "staging.orders_clean",
 }
 
+TABLE_COLUMNS = {
+    "customers": [
+        "customer_id", "name", "email", "phone", "city", "batch_id", "created_at",
+    ],
+    "products": [
+        "product_id", "product_name", "category", "price", "batch_id", "created_at",
+    ],
+    "orders": [
+        "order_id", "customer_id", "product_id", "region", "amount",
+        "payment_status", "batch_id", "created_at",
+    ],
+}
+
 
 # ── MinIO ──────────────────────────────────────────────────────
-MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
-MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER", "minioadmin")
-MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin123")
-MINIO_BUCKET = os.getenv("MINIO_BUCKET", "mandera-raw")
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER")
+MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET")
 
 
 
@@ -97,7 +115,7 @@ def today_partition() -> str:
     return now.strftime("%Y/%m/%d/")
 
 
-NUMBER_OF_BATCHES = int(os.getenv("NUMBER_OF_BATCHES", 2))
+NUMBER_OF_BATCHES = int(os.getenv("NUMBER_OF_BATCHES"))
 
 # Scheduled run hours (UTC) — must match .github/workflows/generate_data.yml cron
 BATCH_SCHEDULE_HOURS = [7, 15]
@@ -105,7 +123,7 @@ BATCH_SCHEDULE_HOURS = [7, 15]
 
 def generate_batch_id() -> str:
     """
-    Auto-generate batch ID: 2026_03_23_07_batch_1
+    Auto-generate batch ID: 2026_03_23_07_batch_01
 
     Determines the batch number based on which scheduled hour slot
     the current time falls closest to. Falls back to sequential

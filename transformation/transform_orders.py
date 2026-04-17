@@ -17,7 +17,7 @@ def transform(engine):
         return
 
     # Deduplicate on order_id
-    df = df.drop_duplicates(subset=["order_id"], keep="last")
+    df = df.drop_duplicates(subset=["order_id", "customer_id", "product_id"], keep="last")
 
     # Null handling
     df = df.dropna(subset=["order_id", "customer_id", "product_id"])
@@ -31,24 +31,26 @@ def transform(engine):
     df["payment_status"] = df["payment_status"].str.strip().str.lower()
 
     # Filter invalid payment statuses
+    rows_before_filtering_payment_status = len(df)
     valid_statuses = {"paid", "failed", "pending"}
     df = df[df["payment_status"].isin(valid_statuses)]
+    rows_after_filtering_payment_status = len(df)
 
     # Upsert: delete existing, then insert (chunked for large batches)
     with engine.begin() as conn:
         ids = tuple(df["order_id"].tolist())
-        if len(ids) == 1:
+        # if len(ids) == 1:
+        #     conn.execute(
+        #         text(f"DELETE FROM {STAGING_TABLES['orders']} WHERE order_id = :id"),
+        #         {"id": ids[0]},
+        #     )
+        # elif ids:
+        for i in range(0, len(ids), 500):
+            chunk = ids[i : i + 500]
             conn.execute(
-                text(f"DELETE FROM {STAGING_TABLES['orders']} WHERE order_id = :id"),
-                {"id": ids[0]},
+                text(f"DELETE FROM {STAGING_TABLES['orders']} WHERE order_id IN :ids"),
+                {"ids": chunk},
             )
-        elif ids:
-            for i in range(0, len(ids), 500):
-                chunk = ids[i : i + 500]
-                conn.execute(
-                    text(f"DELETE FROM {STAGING_TABLES['orders']} WHERE order_id IN :ids"),
-                    {"ids": chunk},
-                )
         df.to_sql("orders_clean", conn, schema="staging", if_exists="append", index=False)
 
     print(f"  ✓ Transformed {len(df)} orders → staging")

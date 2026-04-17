@@ -6,6 +6,7 @@ on:
     - cron: "0 7 * * *"
     # 4:00 PM WAT (UTC+1) = 15:00 UTC
     - cron: "0 15 * * *"
+    
 
   # Allow manual trigger for testing or on-demand data generation
   workflow_dispatch:

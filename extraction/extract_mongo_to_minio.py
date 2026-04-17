@@ -1,5 +1,5 @@
 """
-Extracts all records from MongoDB and writes them as JSON
+Extracts today's records from MongoDB and writes them as JSON
 to MinIO under date-partitioned paths (YYYY/MM/DD/).
 
 MinIO serves as the durable archive — if anything fails downstream,
@@ -7,7 +7,7 @@ you can always replay from here.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import boto3
 from pymongo import MongoClient
@@ -22,6 +22,17 @@ from config.settings import (
     MINIO_BUCKET,
     today_partition,
 )
+
+
+def _get_today_date_range(target_date=None):
+    """Get start and end datetime for today (UTC), or specified date."""
+    if target_date is None:
+        now = datetime.now(timezone.utc)
+    else:
+        now = target_date.replace(tzinfo=timezone.utc)
+    start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_today = start_of_today + timedelta(days=1)
+    return start_of_today, end_of_today
 
 
 def _get_s3_client():
@@ -51,9 +62,9 @@ def _serialize_doc(doc: dict) -> dict:
     return doc
 
 
-def extract_to_minio() -> dict:
+def extract_to_minio(target_date=None) -> dict:
     """
-    Pull all docs from MongoDB and write to MinIO.
+    Pull today's docs from MongoDB and write to MinIO.
     Returns row counts per collection.
     """
     client = MongoClient(MONGO_URI)
@@ -61,13 +72,23 @@ def extract_to_minio() -> dict:
     s3 = _get_s3_client()
     _ensure_bucket(s3)
 
-    partition = today_partition()
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    if target_date is None:
+        partition = today_partition()
+        run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        start_of_today, end_of_today = _get_today_date_range()
+    else:
+        target_dt = target_date.replace(tzinfo=timezone.utc)
+        partition = target_dt.strftime("%Y/%m/%d/")
+        run_id = target_dt.strftime("%Y%m%d_%H%M%S")
+        start_of_today, end_of_today = _get_today_date_range(target_date)
+
     counts = {}
 
     try:
         for name, collection_name in MONGO_COLLECTIONS.items():
-            docs = list(db[collection_name].find())
+            # Filter for documents created today only
+            query = {"created_at": {"$gte": start_of_today, "$lt": end_of_today}}
+            docs = list(db[collection_name].find(query))
             docs = [_serialize_doc(d) for d in docs]
 
             if docs:
@@ -89,4 +110,9 @@ def extract_to_minio() -> dict:
 
 
 if __name__ == "__main__":
-    extract_to_minio()
+    import sys
+    if len(sys.argv) > 1:
+        target_date = datetime.fromisoformat(sys.argv[1])
+        extract_to_minio(target_date)
+    else:
+        extract_to_minio()

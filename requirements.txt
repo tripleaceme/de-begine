@@ -1,5 +1,5 @@
 # Data generation
-faker>=28.0.0
+#faker>=28.0.0
 
 # MongoDB
 pymongo>=4.7.0

@@ -41,7 +41,7 @@ def on_task_failure(context):
     )
 
 
-# ── Task callables ────────────────────────────────────────────
+# ── functions ────────────────────────────────────────────
 def _extract_to_minio(**kwargs):
     counts = extract_to_minio()
     kwargs["ti"].xcom_push(key="minio_counts", value=counts)
@@ -104,7 +104,7 @@ with DAG(
     tags=["mandera", "batch", "analytics"],
     max_active_runs=1,
 ) as dag:
-
+# tasks
     extract_minio = PythonOperator(
         task_id="extract_to_minio",
         python_callable=_extract_to_minio,
@@ -147,7 +147,7 @@ with DAG(
 
     # ── Task dependencies ─────────────────────────────────────
     # Extraction: MinIO and Postgres run in parallel
-    [extract_minio, extract_postgres] >> log_monitoring >> validate_quality
+    [extract_minio, extract_postgres] >>  validate_quality
 
     # Transforms run in parallel after validation passes
-    validate_quality >> [transform_cust, transform_prod, transform_ord] >> truncate_raw
+    validate_quality >> [transform_cust, transform_prod, transform_ord] >> log_monitoring >> truncate_raw

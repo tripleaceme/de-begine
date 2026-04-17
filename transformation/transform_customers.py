@@ -1,5 +1,7 @@
 """Transform raw customers into staging-ready records."""
 
+import os
+
 import pandas as pd
 from sqlalchemy import text
 
@@ -14,14 +16,19 @@ def transform(engine):
 
     if df.empty:
         print("  ⊘ No customers to transform")
-        return
+        return None
 
+    total_rows_before_transformations = len(df)
+    # Data Quality Checks
     # Deduplicate on customer_id
     df = df.drop_duplicates(subset=["customer_id"], keep="last")
-
+    rows_after_dropping_duplicates = len(df)
     # Null handling
     df = df.dropna(subset=["customer_id", "name"])
+    rows_after_dropping_nulls_customer_id_with_name = len(df)
+
     df["email"] = df["email"].fillna("unknown@example.com")
+    
     df["phone"] = df["phone"].fillna("N/A")
     df["city"] = df["city"].fillna("Unknown")
 
@@ -29,20 +36,21 @@ def transform(engine):
     df["name"] = df["name"].str.strip().str.title()
     df["city"] = df["city"].str.strip().str.title()
     df["email"] = df["email"].str.strip().str.lower()
+    
 
     # Upsert: delete existing, then insert
     with engine.begin() as conn:
         ids = tuple(df["customer_id"].tolist())
-        if len(ids) == 1:
-            conn.execute(
-                text(f"DELETE FROM {STAGING_TABLES['customers']} WHERE customer_id = :id"),
-                {"id": ids[0]},
-            )
-        elif ids:
-            conn.execute(
-                text(f"DELETE FROM {STAGING_TABLES['customers']} WHERE customer_id IN :ids"),
-                {"ids": ids},
-            )
+        # if len(ids) == 1:
+        #     conn.execute(
+        #         text(f"DELETE FROM {STAGING_TABLES['customers']} WHERE customer_id = :id"),
+        #         {"id": ids[0]},
+        #     )
+        # elif ids:
+        conn.execute(
+            text(f"DELETE FROM {STAGING_TABLES['customers']} WHERE customer_id IN :ids"),
+            {"ids": ids},
+        )
         df.to_sql("customers_clean", conn, schema="staging", if_exists="append", index=False)
 
     print(f"  ✓ Transformed {len(df)} customers → staging")
@@ -52,3 +60,19 @@ if __name__ == "__main__":
     from sqlalchemy import create_engine
     from config.settings import POSTGRES_URL
     transform(create_engine(POSTGRES_URL))
+
+    
+    slack_callback = os.getenv("SLACK_CALLBACK_URL")
+    if slack_callback:
+        import requests
+        message= """
+        Customer transformation complete!
+        - Total raw records: {total_rows_before_transformations}
+        - After deduplication: {rows_after_dropping_duplicates}
+        - Final staged records: {len(df)}
+        """.format(
+            total_rows_before_transformations=total_rows_before_transformations,
+            rows_after_dropping_duplicates=rows_after_dropping_duplicates,
+            len=len(df), )
+        requests.post(slack_callback, json={"text": message})
+
