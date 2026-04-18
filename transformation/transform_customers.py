@@ -12,7 +12,7 @@ def transform(engine):
     """
     Read all customers from raw, deduplicate, clean, and upsert to staging.
     """
-    df = pd.read_sql(f"SELECT * FROM {RAW_TABLES['customers']}", engine)
+    df = pd.read_sql(text(f"SELECT * FROM {RAW_TABLES['customers']}"), engine)
 
     if df.empty:
         print("  ⊘ No customers to transform")

@@ -10,7 +10,7 @@ def transform(engine):
     """
     Read all orders from raw, deduplicate, clean, and upsert to staging.
     """
-    df = pd.read_sql(f"SELECT * FROM {RAW_TABLES['orders']}", engine)
+    df = pd.read_sql(text(f"SELECT * FROM {RAW_TABLES['orders']}"), engine)
 
     if df.empty:
         print("  ⊘ No orders to transform")

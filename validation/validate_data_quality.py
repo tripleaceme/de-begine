@@ -1,98 +1,177 @@
 """
-Data quality contract validation.
+Data quality observability.
 
-Runs checks against ALL data in raw tables before it flows into staging.
-Since raw tables are truncated after each transform, everything in raw
-is from the current batch.
+Runs checks against ALL data in raw tables before it flows into staging,
+then writes a row per check to monitoring.data_quality_log. The batch is
+never blocked — transforms are responsible for dropping invalid rows via
+dropna; this module's job is to make source-data degradation visible and
+queryable over time.
 
 Checks:
-  - order_id cannot be null
-  - customer_id cannot be null on orders
-  - product_id cannot be null on orders
-  - amount must be positive
-  - payment_status must match allowed values
-  - batch_id must exist (source metadata)
+  Customers:
+    - customers.null_customer_id
+    - customers.null_name
+    - customers.missing_batch_id
+  Products:
+    - products.null_product_id
+    - products.null_product_name
+    - products.invalid_price    (null or <= 0)
+    - products.missing_batch_id
+  Orders:
+    - orders.null_order_id
+    - orders.null_customer_id
+    - orders.null_product_id
+    - orders.invalid_amount     (null or <= 0)
+    - orders.null_payment_status
+    - orders.invalid_payment_status
+    - orders.missing_batch_id
 """
+
+from datetime import datetime, timezone
 
 import psycopg2
 
 from config.settings import POSTGRES_CONFIG, PAYMENT_STATUSES
 
 
-class ValidationError(Exception):
-    """Raised when data quality checks fail."""
-    pass
+def _count_null_or_empty(cur, table: str, column: str) -> int:
+    cur.execute(
+        f"SELECT COUNT(*) FROM {table} WHERE {column} IS NULL OR {column} = ''"
+    )
+    return cur.fetchone()[0]
+
+
+def _count(cur, sql: str) -> int:
+    cur.execute(sql)
+    return cur.fetchone()[0]
 
 
 def validate():
     """
-    Run all quality checks against raw tables.
-    Raises ValidationError if any check fails.
+    Run all quality checks against raw tables, log counts to monitoring,
+    and print a summary. Never raises — transforms handle row-level cleanup.
     """
     conn = psycopg2.connect(**POSTGRES_CONFIG)
-    errors = []
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    results = []  # list of (check_name, failed_count, detail)
 
     try:
         with conn.cursor() as cur:
-            # ── order_id cannot be null ─────────────────────────
-            cur.execute(
-                "SELECT COUNT(*) FROM raw.orders_raw WHERE order_id IS NULL OR order_id = ''"
-            )
-            count = cur.fetchone()[0]
-            if count > 0:
-                errors.append(f"Found {count} orders with null order_id")
+            # ── Customers ──────────────────────────────────────
+            results.append((
+                "customers.null_customer_id",
+                _count_null_or_empty(cur, "raw.customers_raw", "customer_id"),
+                None,
+            ))
+            results.append((
+                "customers.null_name",
+                _count_null_or_empty(cur, "raw.customers_raw", "name"),
+                None,
+            ))
+            results.append((
+                "customers.missing_batch_id",
+                _count_null_or_empty(cur, "raw.customers_raw", "batch_id"),
+                None,
+            ))
 
-            # ── customer_id cannot be null on orders ───────────
-            cur.execute(
-                "SELECT COUNT(*) FROM raw.orders_raw WHERE customer_id IS NULL OR customer_id = ''"
-            )
-            count = cur.fetchone()[0]
-            if count > 0:
-                errors.append(f"Found {count} orders with null customer_id")
+            # ── Products ───────────────────────────────────────
+            results.append((
+                "products.null_product_id",
+                _count_null_or_empty(cur, "raw.products_raw", "product_id"),
+                None,
+            ))
+            results.append((
+                "products.null_product_name",
+                _count_null_or_empty(cur, "raw.products_raw", "product_name"),
+                None,
+            ))
+            results.append((
+                "products.invalid_price",
+                _count(cur, "SELECT COUNT(*) FROM raw.products_raw WHERE price IS NULL OR price <= 0"),
+                None,
+            ))
+            results.append((
+                "products.missing_batch_id",
+                _count_null_or_empty(cur, "raw.products_raw", "batch_id"),
+                None,
+            ))
 
-            # ── product_id cannot be null on orders ────────────
-            cur.execute(
-                "SELECT COUNT(*) FROM raw.orders_raw WHERE product_id IS NULL OR product_id = ''"
-            )
-            count = cur.fetchone()[0]
-            if count > 0:
-                errors.append(f"Found {count} orders with null product_id")
+            # ── Orders ─────────────────────────────────────────
+            results.append((
+                "orders.null_order_id",
+                _count_null_or_empty(cur, "raw.orders_raw", "order_id"),
+                None,
+            ))
+            results.append((
+                "orders.null_customer_id",
+                _count_null_or_empty(cur, "raw.orders_raw", "customer_id"),
+                None,
+            ))
+            results.append((
+                "orders.null_product_id",
+                _count_null_or_empty(cur, "raw.orders_raw", "product_id"),
+                None,
+            ))
+            results.append((
+                "orders.invalid_amount",
+                _count(cur, "SELECT COUNT(*) FROM raw.orders_raw WHERE amount IS NULL OR amount <= 0"),
+                None,
+            ))
+            results.append((
+                "orders.null_payment_status",
+                _count(cur, "SELECT COUNT(*) FROM raw.orders_raw WHERE payment_status IS NULL"),
+                None,
+            ))
 
-            # ── amount must be positive ────────────────────────
-            cur.execute(
-                "SELECT COUNT(*) FROM raw.orders_raw WHERE amount <= 0"
-            )
-            count = cur.fetchone()[0]
-            if count > 0:
-                errors.append(f"Found {count} orders with non-positive amount")
-
-            # ── payment_status must be valid ───────────────────
             allowed = tuple(PAYMENT_STATUSES)
             cur.execute(
-                "SELECT DISTINCT payment_status FROM raw.orders_raw WHERE payment_status NOT IN %s",
+                "SELECT payment_status, COUNT(*) FROM raw.orders_raw "
+                "WHERE payment_status IS NOT NULL AND payment_status NOT IN %s "
+                "GROUP BY payment_status",
                 (allowed,),
             )
-            invalid = [row[0] for row in cur.fetchall()]
-            if invalid:
-                errors.append(f"Invalid payment_status values: {invalid}")
-
-            # ── batch_id must exist ────────────────────────────
-            cur.execute(
-                "SELECT COUNT(*) FROM raw.orders_raw WHERE batch_id IS NULL OR batch_id = ''"
+            invalid_rows = cur.fetchall()
+            invalid_total = sum(count for _, count in invalid_rows)
+            invalid_detail = (
+                ", ".join(f"{status}={count}" for status, count in invalid_rows)
+                if invalid_rows else None
             )
-            count = cur.fetchone()[0]
-            if count > 0:
-                errors.append(f"Found {count} orders with missing batch_id")
+            results.append((
+                "orders.invalid_payment_status",
+                invalid_total,
+                invalid_detail,
+            ))
 
+            results.append((
+                "orders.missing_batch_id",
+                _count_null_or_empty(cur, "raw.orders_raw", "batch_id"),
+                None,
+            ))
+
+            # ── Write all results in one transaction ───────────
+            cur.executemany(
+                """
+                INSERT INTO monitoring.data_quality_log
+                    (run_id, check_name, failed_count, detail)
+                VALUES (%s, %s, %s, %s)
+                """,
+                [(run_id, name, count, detail) for name, count, detail in results],
+            )
+        conn.commit()
     finally:
         conn.close()
 
-    if errors:
-        error_msg = "Data validation failed:\n" + "\n".join(f"  ✗ {e}" for e in errors)
-        print(error_msg)
-        raise ValidationError(error_msg)
+    # ── Console summary (visible in task logs) ────────────────
+    failures = [(name, count, detail) for name, count, detail in results if count > 0]
+    total_failures = sum(count for _, count, _ in failures)
 
-    print("  ✓ All validation checks passed")
+    if failures:
+        print(f"  ⚠ Data quality issues logged (run: {run_id}, {total_failures} bad rows across {len(failures)} rules):")
+        for name, count, detail in failures:
+            suffix = f" [{detail}]" if detail else ""
+            print(f"    ⚠ {name}: {count}{suffix}")
+    else:
+        print(f"  ✓ All data quality checks passed (run: {run_id})")
 
 
 if __name__ == "__main__":

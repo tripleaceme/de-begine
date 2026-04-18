@@ -10,7 +10,7 @@ def transform(engine):
     """
     Read all products from raw, deduplicate, clean, and upsert to staging.
     """
-    df = pd.read_sql(f"SELECT * FROM {RAW_TABLES['products']}", engine)
+    df = pd.read_sql(text(f"SELECT * FROM {RAW_TABLES['products']}"), engine)
 
     if df.empty:
         print("  ⊘ No products to transform")
