@@ -1,4 +1,4 @@
-# Mandera Analytics — Batch Data Pipeline
+# Begine Fusion — Batch Data Pipeline
 
 A production-grade batch analytics pipeline that generates synthetic transactional data, stores it in MongoDB Atlas, extracts into MinIO and PostgreSQL, transforms into analytics-ready staging tables, and orchestrates everything through Apache Airflow.
 
@@ -44,15 +44,15 @@ All orchestrated by **Apache Airflow** running on Docker.
 ### 1. Clone and Configure
 
 ```bash
-git clone https://github.com/tripleaceme/mandera-batch-pipeline.git
-cd mandera-batch-pipeline
+git clone https://github.com/tripleaceme/begine-fusion-batch-pipeline.git
+cd begine-fusion-batch-pipeline
 cp .env.example .env
 ```
 
 Edit `.env` and set your MongoDB Atlas connection string:
 
 ```
-MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/mandera_analytics?retryWrites=true&w=majority
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/begine_fusion_analytics?retryWrites=true&w=majority
 ```
 
 Then generate a Fernet key for Airflow encryption:
@@ -104,14 +104,14 @@ The `db-setup` container automatically creates all schemas and tables on first s
 **To verify via pgAdmin:**
 
 1. Open http://localhost:5050
-2. In the left sidebar, expand **Mandera Warehouse** → **Schemas**
+2. In the left sidebar, expand **Begine Fusion Warehouse** → **Schemas**
 3. You should see three schemas: `raw`, `staging`, `monitoring`
 4. When prompted for a password, enter: `pipeline_secret`
 
 **To verify via command line (optional):**
 
 ```bash
-docker compose exec postgres psql -U pipeline -d mandera_warehouse \
+docker compose exec postgres psql -U pipeline -d begine_fusion_warehouse \
   -c "\dt raw.*; \dt staging.*; \dt monitoring.*;"
 ```
 
@@ -165,10 +165,10 @@ Verify in MongoDB Atlas that the `customers`, `products`, and `orders` collectio
 python -m extraction.extract_mongo_to_minio
 ```
 
-Open http://localhost:9001, log in with `minioadmin` / `minioadmin123`, and browse the `mandera-raw` bucket. You should see:
+Open http://localhost:9001, log in with `minioadmin` / `minioadmin123`, and browse the `begine-fusion-raw` bucket. You should see:
 
 ```
-mandera-raw/
+begine-fusion-raw/
   customers/2026/04/07/<run_id>.json
   products/2026/04/07/<run_id>.json
   orders/2026/04/07/<run_id>.json
@@ -182,12 +182,12 @@ mandera-raw/
 python -m extraction.extract_mongo_to_postgres
 ```
 
-Verify in pgAdmin: navigate to **Mandera Warehouse** → **raw** → **Tables** → right-click `orders_raw` → **View/Edit Data** → **First 100 Rows**.
+Verify in pgAdmin: navigate to **Begine Fusion Warehouse** → **raw** → **Tables** → right-click `orders_raw` → **View/Edit Data** → **First 100 Rows**.
 
 Or via command line:
 
 ```bash
-docker compose exec postgres psql -U pipeline -d mandera_warehouse \
+docker compose exec postgres psql -U pipeline -d begine_fusion_warehouse \
   -c "SELECT COUNT(*) FROM raw.orders_raw;"
 ```
 
@@ -218,7 +218,7 @@ Transformations include: deduplication, null handling, type correction, and stan
 Verify in pgAdmin under **staging** schema, or:
 
 ```bash
-docker compose exec postgres psql -U pipeline -d mandera_warehouse \
+docker compose exec postgres psql -U pipeline -d begine_fusion_warehouse \
   -c "SELECT COUNT(*) FROM staging.orders_clean;"
 ```
 
@@ -237,7 +237,7 @@ This clears the raw tables after successful transformation, preparing them for t
 Once you've verified the manual steps work, let Airflow handle everything automatically.
 
 1. Open http://localhost:8080 (login: `admin` / `admin`)
-2. Find `mandera_batch_pipeline` in the DAGs list
+2. Find `begine_fusion_batch_pipeline` in the DAGs list
 3. Toggle it **ON**
 4. Click the **play button** to trigger a manual run
 
@@ -275,24 +275,24 @@ It can also be triggered manually via `workflow_dispatch`.
 | Secret | Value |
 |--------|-------|
 | `MONGO_URI` | Your MongoDB Atlas connection string |
-| `MONGO_DB` | `mandera_analytics` |
+| `MONGO_DB` | `begine_fusion_analytics` |
 
 #### How to Create the Secrets
 
 **Option A: Via GitHub UI**
 
-1. Go to your repo on GitHub: https://github.com/tripleaceme/mandera-batch-pipeline
+1. Go to your repo on GitHub: https://github.com/tripleaceme/begine-fusion-batch-pipeline
 2. Click **Settings** (top tab bar)
 3. In the left sidebar, click **Secrets and variables** → **Actions**
 4. Click **New repository secret**
 5. For the first secret:
    - **Name:** `MONGO_URI`
-   - **Secret:** `mongodb+srv://<username>:<password>@<cluster>.mongodb.net/mandera_analytics?retryWrites=true&w=majority`
+   - **Secret:** `mongodb+srv://<username>:<password>@<cluster>.mongodb.net/begine_fusion_analytics?retryWrites=true&w=majority`
    - Click **Add secret**
 6. Click **New repository secret** again
 7. For the second secret:
    - **Name:** `MONGO_DB`
-   - **Secret:** `mandera_analytics`
+   - **Secret:** `begine_fusion_analytics`
    - Click **Add secret**
 
 **Option B: Via GitHub CLI**
@@ -302,7 +302,7 @@ It can also be triggered manually via `workflow_dispatch`.
 gh secret set MONGO_URI
 
 # Set MONGO_DB
-gh secret set MONGO_DB --body "mandera_analytics"
+gh secret set MONGO_DB --body "begine_fusion_analytics"
 ```
 
 #### How to Get Your MongoDB Atlas Connection String
@@ -315,7 +315,7 @@ gh secret set MONGO_DB --body "mandera_analytics"
    mongodb+srv://<username>:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
    ```
 5. Replace `<username>` and `<password>` with your Atlas database user credentials
-6. Add the database name before the `?`: `.../mandera_analytics?retryWrites=true&w=majority`
+6. Add the database name before the `?`: `.../begine_fusion_analytics?retryWrites=true&w=majority`
 
 #### Allow GitHub Actions to Connect to MongoDB Atlas
 
@@ -340,7 +340,7 @@ Wait about 1 minute for the change to propagate, then test the workflow.
 ### pgAdmin (PostgreSQL)
 - **URL:** http://localhost:5050
 - **Purpose:** Browse schemas, query tables, inspect data
-- **Pre-configured:** "Mandera Warehouse" server appears automatically in the sidebar
+- **Pre-configured:** "Begine Fusion Warehouse" server appears automatically in the sidebar
 - **Password when prompted:** `pipeline_secret`
 
 ### MinIO Console
@@ -362,7 +362,7 @@ batch-pipeline/
 ├── .github/workflows/
 │   └── generate_data.yml          # GitHub Actions: scheduled data generation
 ├── airflow/dags/
-│   └── mandera_pipeline_dag.py    # Airflow DAG orchestration
+│   └── begine_fusion_pipeline_dag.py    # Airflow DAG orchestration
 ├── config/
 │   ├── settings.py                # Centralized configuration (env-driven)
 │   └── pgadmin_servers.json       # pgAdmin auto-connect config
@@ -405,16 +405,16 @@ batch-pipeline/
 | Variable | Purpose | Default |
 |----------|---------|---------|
 | `MONGO_URI` | MongoDB Atlas connection string | **Required — no default** |
-| `MONGO_DB` | MongoDB database name | `mandera_analytics` |
+| `MONGO_DB` | MongoDB database name | `begine_fusion_analytics` |
 | `POSTGRES_USER` | PostgreSQL username | `pipeline` |
 | `POSTGRES_PASSWORD` | PostgreSQL password | `pipeline_secret` |
-| `POSTGRES_DB` | PostgreSQL database | `mandera_warehouse` |
+| `POSTGRES_DB` | PostgreSQL database | `begine_fusion_warehouse` |
 | `POSTGRES_HOST` | PostgreSQL host | `postgres` (Docker) / `localhost` (local) |
 | `POSTGRES_PORT` | PostgreSQL port | `5432` (Docker internal) |
 | `MINIO_ROOT_USER` | MinIO access key | `minioadmin` |
 | `MINIO_ROOT_PASSWORD` | MinIO secret key | `minioadmin123` |
 | `MINIO_ENDPOINT` | MinIO API URL | `http://minio:9000` (Docker) / `http://localhost:9000` (local) |
-| `MINIO_BUCKET` | MinIO bucket name | `mandera-raw` |
+| `MINIO_BUCKET` | MinIO bucket name | `begine-fusion-raw` |
 | `AIRFLOW__CORE__FERNET_KEY` | Encryption key for Airflow secrets | **Required — generate one** |
 | `NUMBER_OF_BATCHES` | Batches per day | `2` |
 
@@ -426,7 +426,7 @@ batch-pipeline/
 The Docker PostgreSQL maps to port **5433** externally to avoid conflicts with local PostgreSQL installations. Connect via `localhost:5433`, not `5432`.
 
 **MinIO bucket is empty:**
-The `mandera-raw` bucket is created automatically when you first run the extraction step. Run the data generator first, then the extraction.
+The `begine-fusion-raw` bucket is created automatically when you first run the extraction step. Run the data generator first, then the extraction.
 
 **Airflow SQLAlchemy error:**
 Ensure `requirements.txt` has `sqlalchemy>=1.4.0,<2.0.0`. Airflow 2.9.x is not compatible with SQLAlchemy 2.x.

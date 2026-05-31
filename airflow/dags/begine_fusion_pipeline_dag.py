@@ -1,5 +1,5 @@
 """
-Mandera Analytics – Batch Pipeline DAG
+Begine Fusion – Batch Pipeline DAG
 
 Data generation is handled separately by GitHub Actions (8 AM & 4 PM WAT).
 This DAG picks up whatever landed in MongoDB and processes it through:
@@ -85,7 +85,7 @@ def _truncate_raw(**kwargs):
 
 # ── DAG definition ────────────────────────────────────────────
 default_args = {
-    "owner": "mandera_analytics",
+    "owner": "begine_fusion_analytics",
     "depends_on_past": False,
     "email_on_failure": False,
     "retries": 2,
@@ -95,13 +95,13 @@ default_args = {
 }
 
 with DAG(
-    dag_id="mandera_batch_pipeline",
+    dag_id="begine_fusion_batch_pipeline",
     default_args=default_args,
     description="Analytics pipeline: MongoDB → MinIO + Postgres raw → staging",
     schedule_interval="30 7,15 * * *",
     start_date=datetime(2026, 3, 23),
     catchup=False,
-    tags=["mandera", "batch", "analytics"],
+    tags=["begine_fusion", "batch", "analytics"],
     max_active_runs=1,
 ) as dag:
 

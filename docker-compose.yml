@@ -27,7 +27,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-pipeline}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pipeline_secret}
-      POSTGRES_DB: ${POSTGRES_DB:-mandera_warehouse}
+      POSTGRES_DB: ${POSTGRES_DB:-begine_fusion_warehouse}
     ports:
       - "${POSTGRES_EXTERNAL_PORT:-5433}:5432"
     volumes:
@@ -58,7 +58,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4:latest
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@mandera.io}
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@beginefusion.io}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
       PGADMIN_CONFIG_SERVER_MODE: "False"
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
@@ -87,7 +87,7 @@ services:
     command: >
       bash -c "
         airflow db migrate &&
-        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@mandera.io || true &&
+        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@beginefusion.io || true &&
         airflow webserver
       "
     ports:
@@ -108,9 +108,9 @@ services:
     <<: *airflow-common
     command: >
       bash -c "
-        psql -h postgres -U ${POSTGRES_USER:-pipeline} -d ${POSTGRES_DB:-mandera_warehouse} -f /opt/airflow/sql/create_raw_tables.sql &&
-        psql -h postgres -U ${POSTGRES_USER:-pipeline} -d ${POSTGRES_DB:-mandera_warehouse} -f /opt/airflow/sql/create_staging_tables.sql &&
-        psql -h postgres -U ${POSTGRES_USER:-pipeline} -d ${POSTGRES_DB:-mandera_warehouse} -f /opt/airflow/sql/create_monitoring_tables.sql
+        psql -h postgres -U ${POSTGRES_USER:-pipeline} -d ${POSTGRES_DB:-begine_fusion_warehouse} -f /opt/airflow/sql/create_raw_tables.sql &&
+        psql -h postgres -U ${POSTGRES_USER:-pipeline} -d ${POSTGRES_DB:-begine_fusion_warehouse} -f /opt/airflow/sql/create_staging_tables.sql &&
+        psql -h postgres -U ${POSTGRES_USER:-pipeline} -d ${POSTGRES_DB:-begine_fusion_warehouse} -f /opt/airflow/sql/create_monitoring_tables.sql
       "
     environment:
       PGPASSWORD: ${POSTGRES_PASSWORD:-pipeline_secret}

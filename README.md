@@ -1,6 +1,6 @@
-# Mandera Analytics — Batch Data Pipeline
+# Begine Fusion — Batch Data Pipeline
 
-A batch data engineering pipeline that generates synthetic transactional data, stores it in MongoDB Atlas, extracts into MinIO and PostgreSQL, transforms into analytics-ready staging tables, and orchestrates everything through Apache Airflow.
+A batch data engineering pipeline built for **Begine Fusion**, a digital transformation and AI systems consultancy headquartered in Calgary, Alberta. The pipeline generates synthetic transactional data representing Begine Fusion's client operations, stores it in MongoDB Atlas, extracts it into MinIO and PostgreSQL, transforms it into analytics-ready staging tables, and orchestrates everything through Apache Airflow.
 
 ## Architecture
 
@@ -45,8 +45,8 @@ GitHub Actions (cron)                 Airflow DAG (Docker)
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/tripleaceme/mandera-batch-pipeline.git
-cd mandera-batch-pipeline
+git clone https://github.com/beginefusion/begine-fusion-batch-pipeline.git
+cd begine-fusion-batch-pipeline
 cp .env.example .env
 # Edit .env — set MONGO_URI and generate AIRFLOW__CORE__FERNET_KEY
 
@@ -77,7 +77,7 @@ See [run.md](run.md) for the complete setup guide, step-by-step pipeline executi
 ├── transformation/      # Raw → staging (Pandas)
 ├── validation/          # Data quality and contract checks
 ├── maintenance/         # Raw table truncation
-├── airflow/dags/        # Airflow DAG definition
+├── airflow/dags/        # begine_fusion_pipeline_dag.py — Airflow DAG definition
 ├── sql/                 # DDL for raw, staging, monitoring schemas
 ├── config/              # Centralized settings + pgAdmin config
 ├── docs/                # Architecture docs and data dictionary

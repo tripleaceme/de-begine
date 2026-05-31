@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mandera Analytics — Pipeline Architecture</title>
+<title>Begine Fusion — Pipeline Architecture</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -595,7 +595,7 @@
   <!-- HEADER -->
   <div class="header animate-in">
     <div class="label">System Architecture</div>
-    <h1>Mandera Analytics Pipeline</h1>
+    <h1>Begine Fusion Pipeline</h1>
     <div class="subtitle">
       <span class="hl-orange">Data generation</span> runs independently via GitHub Actions on a cron schedule, pushing synthetic records into MongoDB Atlas.
       The <span class="hl-cyan">analytics pipeline</span> is orchestrated by Apache Airflow — extracting, validating, transforming, and loading into the warehouse.
@@ -707,7 +707,7 @@
           </div>
           <div>
             <div class="card-title">Apache Airflow</div>
-            <div class="card-tag">DAG: mandera_batch_pipeline</div>
+            <div class="card-tag">DAG: begine_fusion_batch_pipeline</div>
           </div>
         </div>
         <div class="card-body">

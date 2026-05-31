@@ -1,4 +1,4 @@
-# Architecture — Mandera Analytics Batch Pipeline
+# Architecture — Begine Fusion Batch Pipeline
 
 ## System Overview
 

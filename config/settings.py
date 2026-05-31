@@ -1,5 +1,5 @@
 """
-Centralized configuration for the Mandera Analytics pipeline.
+Centralized configuration for the Begine Fusion pipeline.
 All modules import from here — no hardcoded connection strings.
 """
 
@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise EnvironmentError("MONGO_URI is not set. Provide your MongoDB Atlas connection string in .env")
-MONGO_DB = os.getenv("MONGO_DB", "mandera_analytics")
+MONGO_DB = os.getenv("MONGO_DB", "begine_fusion_analytics")
 
 
 MONGO_COLLECTIONS = {
@@ -29,7 +29,7 @@ CUSTOMERS_MAX = 20
 PRODUCTS_MIN = 5
 PRODUCTS_MAX = 10
 
-REGIONS = ["Mandera East", "Mandera West", "Mandera Central"]
+REGIONS = ["Begine Fusion East", "Begine Fusion West", "Begine Fusion Central"]
 PAYMENT_STATUSES = ["paid", "failed", "pending"]
 
 PRODUCT_CATEGORIES = {
@@ -59,7 +59,7 @@ PRODUCT_CATEGORIES = {
 POSTGRES_CONFIG = {
     "host": os.getenv("POSTGRES_HOST", "localhost"),
     "port": int(os.getenv("POSTGRES_PORT", 5432)),
-    "database": os.getenv("POSTGRES_DB", "mandera_warehouse"),
+    "database": os.getenv("POSTGRES_DB", "begine_fusion_warehouse"),
     "user": os.getenv("POSTGRES_USER", "pipeline"),
     "password": os.getenv("POSTGRES_PASSWORD", "pipeline_secret"),
 }
@@ -87,7 +87,7 @@ STAGING_TABLES = {
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin123")
-MINIO_BUCKET = os.getenv("MINIO_BUCKET", "mandera-raw")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "begine-fusion-raw")
 
 
 
