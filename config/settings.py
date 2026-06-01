@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise EnvironmentError("MONGO_URI is not set. Provide your MongoDB Atlas connection string in .env")
-MONGO_DB = os.getenv("MONGO_DB", "mandera_analytics")
+MONGO_DB = os.getenv("MONGO_DB", "begine_fusion_analytics")
 
 
 MONGO_COLLECTIONS = {
@@ -87,7 +87,7 @@ STAGING_TABLES = {
 MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
 MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER", "minioadmin")
 MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin123")
-MINIO_BUCKET = os.getenv("MINIO_BUCKET", "mandera-raw")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET", "begine-fusion-raw")
 
 
 

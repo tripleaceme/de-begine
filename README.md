@@ -45,8 +45,8 @@ GitHub Actions (cron)                 Airflow DAG (Docker)
 
 ```bash
 # 1. Clone and configure
-git clone https://github.com/tripleaceme/mandera-batch-pipeline.git
-cd mandera-batch-pipeline
+git clone https://github.com/tripleaceme/begine-fusion-batch-pipeline.git
+cd begine-fusion-batch-pipeline
 cp .env.example .env
 # Edit .env — set MONGO_URI and generate AIRFLOW__CORE__FERNET_KEY
 
