@@ -5,15 +5,31 @@ from datetime import datetime, timezone
 
 from config.settings import ORDERS_MIN, ORDERS_MAX, REGIONS, PAYMENT_STATUSES
 
-from config.data_quality import DATA_QUALITY_PROFILE
-from generator.data_quality import introduce_order_issues
+
+def introduce_order_bad_data(order: dict) -> dict:
+    """Introduce common order data quality issues in a simple, explainable way."""
+    if random.random() < 0.08:  # 8% missing customer reference
+        order["customer_id"] = None
+
+    if random.random() < 0.08:  # 8% missing product reference
+        order["product_id"] = None
+
+    if random.random() < 0.06:  # 6% invalid amount values
+        order["amount"] = "NaN"
+
+    if random.random() < 0.05:  # 5% negative amount bug
+        if isinstance(order["amount"], (int, float)):
+            order["amount"] = -abs(order["amount"])
+
+    if random.random() < 0.05:  # 5% invalid status values
+        order["payment_status"] = "UNKNOWN_STATUS"
+
+    return order
 
 
 def generate(customer_ids, product_ids, batch_id):
     count = random.randint(ORDERS_MIN, ORDERS_MAX)
     orders = []
-
-    config = DATA_QUALITY_PROFILE["orders"]
 
     for _ in range(count):
         order = {
@@ -27,7 +43,7 @@ def generate(customer_ids, product_ids, batch_id):
             "created_at": datetime.now(timezone.utc),
         }
 
-        order = introduce_order_issues(order, config)
+        order = introduce_order_bad_data(order)
         orders.append(order)
 
     return orders

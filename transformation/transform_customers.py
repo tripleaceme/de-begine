@@ -21,13 +21,19 @@ def transform(engine):
 
     # Null handling
     df = df.dropna(subset=["customer_id", "name"])
-    df["email"] = df["email"].fillna("unknown@example.com")
+    df["email"] = df["email"].fillna("").astype(str).str.strip().str.lower()
+    df["email"] = df["email"].where(
+        df["email"].str.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$"),
+        "unknown@example.com",
+    )
+    df["email"] = df["email"].replace({"": "unknown@example.com"})
     df["phone"] = df["phone"].fillna("N/A")
-    df["city"] = df["city"].fillna("Unknown")
+    df["city"] = df["city"].fillna("").astype(str).str.strip()
+    df["city"] = df["city"].replace({"": "Unknown"})
 
     # Standardize
     df["name"] = df["name"].str.strip().str.title()
-    df["city"] = df["city"].str.strip().str.title()
+    df["city"] = df["city"].str.title()
     df["email"] = df["email"].str.strip().str.lower()
 
     # Upsert: delete existing, then insert

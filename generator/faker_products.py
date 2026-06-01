@@ -4,15 +4,32 @@ import random
 from datetime import datetime, timezone
 
 from config.settings import PRODUCTS_MIN, PRODUCTS_MAX, PRODUCT_CATEGORIES
-from config.data_quality import DATA_QUALITY_PROFILE
-from generator.data_quality import introduce_product_issues
+
+
+def introduce_product_bad_data(product: dict, all_categories: list) -> dict:
+    """Introduce simple product data quality issues for realistic test data."""
+    if random.random() < 0.08:  # 8% missing product name
+        product["product_name"] = None
+
+    if random.random() < 0.06:  # 6% invalid price values
+        product["price"] = round(random.uniform(100000, 999999), 2)
+
+    if random.random() < 0.05:  # 5% zero-price bug
+        product["price"] = 0
+
+    if random.random() < 0.05:  # 5% category mismatch
+        product["category"] = random.choice(all_categories)
+
+    if random.random() < 0.05:  # 5% schema drift adds unexpected fields
+        product["brand"] = random.choice(["Nike", "Apple", "Samsung", "Sony", "Generic"])
+        product["is_active"] = random.choice([True, False])
+
+    return product
 
 
 def generate(batch_id: str) -> list[dict]:
     count = random.randint(PRODUCTS_MIN, PRODUCTS_MAX)
     products = []
-
-    config = DATA_QUALITY_PROFILE["products"]
 
     all_categories = list(PRODUCT_CATEGORIES.keys())
 
@@ -28,7 +45,7 @@ def generate(batch_id: str) -> list[dict]:
             "created_at": datetime.now(timezone.utc),
         }
 
-        product = introduce_product_issues(product, config, all_categories)
+        product = introduce_product_bad_data(product, all_categories)
         products.append(product)
 
     return products

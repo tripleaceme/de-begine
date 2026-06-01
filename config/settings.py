@@ -57,11 +57,11 @@ PRODUCT_CATEGORIES = {
 
 # ── PostgreSQL / table mappings ─────────────────────────────────────────────────
 POSTGRES_CONFIG = {
-    "host": os.getenv("POSTGRES_HOST", "localhost"),
-    "port": int(os.getenv("POSTGRES_PORT", 5432)),
-    "database": os.getenv("POSTGRES_DB", "mandera_warehouse"),
-    "user": os.getenv("POSTGRES_USER", "pipeline"),
-    "password": os.getenv("POSTGRES_PASSWORD", "pipeline_secret"),
+    "host": os.getenv("POSTGRES_HOST"),
+    "port": int(os.getenv("POSTGRES_PORT")),
+    "database": os.getenv("POSTGRES_DB"),
+    "user": os.getenv("POSTGRES_USER"),
+    "password": os.getenv("POSTGRES_PASSWORD"),
 }
 
 POSTGRES_URL = (

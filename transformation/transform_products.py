@@ -22,13 +22,18 @@ def transform(engine):
     # Null handling
     df = df.dropna(subset=["product_id", "product_name"])
     df["category"] = df["category"].fillna("Uncategorized")
-    df["price"] = pd.to_numeric(df["price"], errors="coerce").fillna(0)
+    df["price"] = pd.to_numeric(df["price"], errors="coerce")
+
+    # Reject invalid product pricing
+    df = df[df["price"].gt(0) & (df["price"] < 100000)]
+    df["price"] = df["price"].fillna(0)
 
     # Standardize
     df["product_name"] = df["product_name"].str.strip().str.title()
     df["category"] = df["category"].str.strip().str.title()
 
     # Upsert: delete existing, then insert
+    df = df[["product_id", "product_name", "category", "price", "batch_id", "created_at"]]
     with engine.begin() as conn:
         ids = tuple(df["product_id"].tolist())
         if len(ids) == 1:

@@ -21,10 +21,15 @@ def transform(engine):
 
     # Null handling
     df = df.dropna(subset=["order_id", "customer_id", "product_id"])
+    df = df[df["customer_id"].astype(str).str.strip() != ""]
+    df = df[df["product_id"].astype(str).str.strip() != ""]
 
     # Type corrections
-    df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0)
+    df["amount"] = pd.to_numeric(df["amount"], errors="coerce")
     df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce")
+
+    # Reject invalid amounts
+    df = df[df["amount"].gt(0)]
 
     # Standardize
     df["region"] = df["region"].str.strip().str.title()
