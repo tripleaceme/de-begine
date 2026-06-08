@@ -6,12 +6,3 @@ __pycache__/
 *.pptx
 *.docx
 *.pdf
-.github/
-airflow/
-extraction/
-maintenance/
-sql/
-transformation/
-validation/
-docker-compose.yml
-Dockerfile
