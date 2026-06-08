@@ -7,9 +7,13 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover
+    load_dotenv = None
 
-load_dotenv(Path(__file__).parent.parent / ".env")
+if load_dotenv is not None:
+    load_dotenv(Path(__file__).parent.parent / ".env")
 
 
 # ── MongoDB Atlas ──────────────────────────────────────────────
