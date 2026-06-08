@@ -9,10 +9,18 @@ import random
 from datetime import datetime, timezone
 
 from faker import Faker
+from pymongo import MongoClient
 
-from config.settings import CUSTOMERS_MIN, CUSTOMERS_MAX
+from config.settings import CUSTOMERS_MIN, CUSTOMERS_MAX, MONGO_URI, MONGO_DB, MONGO_COLLECTIONS, generate_batch_id
 
 fake = Faker()
+client = MongoClient(MONGO_URI)
+db = client[MONGO_DB]
+
+
+# Generate batch_id once so all records in this run share the same ID
+batch_id = generate_batch_id()
+print(f"  Batch ID: {batch_id}\n")
 
 
 def introduce_bad_customer_data(customer: dict) -> dict:
@@ -54,3 +62,9 @@ def generate_customers(batch_id: str) -> list[dict]:
         customers_data.append(bad_customer_data)
 
     return customers_data
+
+
+
+customers = generate_customers(batch_id)
+db[MONGO_COLLECTIONS["customers"]].insert_many(customers)
+print(f"  ✓ Inserted {len(customers)} customers")

@@ -8,13 +8,18 @@ Usage:
     python -m generator.data_generator
 """
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from pymongo import MongoClient
 
 from config.settings import MONGO_URI, MONGO_DB, MONGO_COLLECTIONS, generate_batch_id
 from generator import faker_customers, faker_products, faker_orders
 
 
-def run():
+def run_pipeline():
     """Generate customers → products → orders and insert into MongoDB."""
     client = MongoClient(MONGO_URI)
     db = client[MONGO_DB]
@@ -25,12 +30,12 @@ def run():
 
     try:
         # Generate and insert customers
-        customers = faker_customers.generate(batch_id)
+        customers = faker_customers.generate_customers(batch_id)
         db[MONGO_COLLECTIONS["customers"]].insert_many(customers)
         print(f"  ✓ Inserted {len(customers)} customers")
 
         # Generate and insert products
-        products = faker_products.generate(batch_id)
+        products = faker_products.generate_products(batch_id)
         db[MONGO_COLLECTIONS["products"]].insert_many(products)
         print(f"  ✓ Inserted {len(products)} products")
 
@@ -38,10 +43,12 @@ def run():
         all_customer_ids = db[MONGO_COLLECTIONS["customers"]].distinct("customer_id")
         all_product_ids = db[MONGO_COLLECTIONS["products"]].distinct("product_id")
 
-        # Generate and insert orders
-        orders = faker_orders.generate(all_customer_ids, all_product_ids, batch_id)
-        db[MONGO_COLLECTIONS["orders"]].insert_many(orders)
-        print(f"  ✓ Inserted {len(orders)} orders")
+        # # Generate and insert orders
+        # orders = faker_orders.generate_orders(all_customer_ids, all_product_ids, batch_id)
+        # db[MONGO_COLLECTIONS["orders"]].insert_many(orders)
+        # print(f"  ✓ Inserted {len(orders)} orders")
+
+        client.close()
 
     finally:
         client.close()
@@ -50,4 +57,4 @@ def run():
 
 
 if __name__ == "__main__":
-    run()
+    run_pipeline()

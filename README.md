@@ -1,4 +1,4 @@
-# Mandera Analytics — Batch Data Pipeline
+# Begine Fusion Analytics — Batch Data Pipeline
 
 A batch data engineering pipeline that generates synthetic transactional data, stores it in MongoDB Atlas, extracts into MinIO and PostgreSQL, transforms into analytics-ready staging tables, and orchestrates everything through Apache Airflow.
 

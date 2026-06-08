@@ -5,13 +5,18 @@ All modules import from here — no hardcoded connection strings.
 
 import os
 from datetime import datetime, timezone
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 
 # ── MongoDB Atlas ──────────────────────────────────────────────
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
     raise EnvironmentError("MONGO_URI is not set. Provide your MongoDB Atlas connection string in .env")
-MONGO_DB = os.getenv("MONGO_DB", "begine_fusion_analytics")
+MONGO_DB = os.getenv("MONGO_DB")
 
 
 MONGO_COLLECTIONS = {
@@ -84,10 +89,10 @@ STAGING_TABLES = {
 
 
 # ── MinIO ──────────────────────────────────────────────────────
-MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
-MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER", "minioadmin")
-MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD", "minioadmin123")
-MINIO_BUCKET = os.getenv("MINIO_BUCKET", "begine-fusion-raw")
+MINIO_ENDPOINT = os.getenv("MINIO_ENDPOINT")
+MINIO_ACCESS_KEY = os.getenv("MINIO_ROOT_USER")
+MINIO_SECRET_KEY = os.getenv("MINIO_ROOT_PASSWORD")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET")
 
 
 
@@ -97,7 +102,7 @@ def today_partition() -> str:
     return now.strftime("%Y/%m/%d/")
 
 
-NUMBER_OF_BATCHES = int(os.getenv("NUMBER_OF_BATCHES", 2))
+NUMBER_OF_BATCHES = int(os.getenv("NUMBER_OF_BATCHES"))
 
 # Scheduled run hours (UTC) — must match .github/workflows/generate_data.yml cron
 BATCH_SCHEDULE_HOURS = [7, 15]
@@ -105,7 +110,11 @@ BATCH_SCHEDULE_HOURS = [7, 15]
 
 def generate_batch_id() -> str:
     """
-    Auto-generate batch ID: 2026_03_23_07_batch_1
+    Auto-generate batch ID: 2026_03_23_07_batch_01
+
+    date_part: YYYY_MM_DD
+    hour: HH (24-hour format)
+    batch_number: 1 or 2 based on which scheduled hour is closest (7 or 15 UTC)
 
     Determines the batch number based on which scheduled hour slot
     the current time falls closest to. Falls back to sequential
@@ -113,7 +122,7 @@ def generate_batch_id() -> str:
     """
     now = datetime.now(timezone.utc)
     date_part = now.strftime("%Y_%m_%d")
-    hour = now.hour
+    hour = now.hour # 13 - 15 = 2
 
     # Find the closest scheduled hour to determine batch number
     batch_number = 1

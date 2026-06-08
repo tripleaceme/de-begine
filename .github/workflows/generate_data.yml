@@ -1,6 +1,14 @@
 name: Generate Synthetic Data → MongoDB Atlas
 
 on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
   schedule:
     # 8:00 AM WAT (UTC+1) = 07:00 UTC
     - cron: "0 7 * * *"
@@ -28,9 +36,15 @@ jobs:
 
       - name: Generate synthetic data → MongoDB Atlas
         env:
-          MONGO_URI: ${{ secrets.MONGO_URI }}
-          MONGO_DB: ${{ secrets.MONGO_DB }}
+          MONGO_URI: ${{ secrets.MONGO_URI }} # mongodb+srv://<username>:<password>@cluster0.mongodb.net
+          MONGO_DB: ${{ secrets.MONGO_DB }} # mandera_analytics
         run: python -m generator.data_generator
 
+      - name: Send Customer All to MongoDB Atlas
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }} # mongodb+srv://<username>:<password>@cluster0.mongodb.net
+          MONGO_DB: ${{ secrets.MONGO_DB }} # mandera_analytics
+        run: python -m generator.customer_all
+     
       - name: Log summary
         run: echo "✓ Data generated at $(date -u '+%Y-%m-%d %H:%M UTC')"

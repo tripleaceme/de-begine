@@ -1,12 +1,17 @@
 """Generates synthetic product records."""
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import random
 from datetime import datetime, timezone
 
 from config.settings import PRODUCTS_MIN, PRODUCTS_MAX, PRODUCT_CATEGORIES
 
 
-def introduce_product_bad_data(product: dict, all_categories: list) -> dict:
+def introduce_bad_product_data(product: dict, all_categories: list) -> dict:
     """Introduce simple product data quality issues for realistic test data."""
     if random.random() < 0.08:  # 8% missing product name
         product["product_name"] = None
@@ -27,43 +32,27 @@ def introduce_product_bad_data(product: dict, all_categories: list) -> dict:
     return product
 
 
-def generate(batch_id: str) -> list[dict]:
+
+
+def generate_products(batch_id: str) -> list[dict]:
     count = random.randint(PRODUCTS_MIN, PRODUCTS_MAX)
-    products = []
+    products_data = []
 
     all_categories = list(PRODUCT_CATEGORIES.keys())
 
     for _ in range(count):
         category = random.choice(all_categories)
 
-        product = {
+        new_product = {
             "product_id": f"PROD{random.randint(1000, 9999)}",
             "product_name": random.choice(PRODUCT_CATEGORIES[category]),
             "category": category,
-            "price": round(random.uniform(50, 15000), 2),
+            "price": round(random.uniform(50, 1500), 2),
             "batch_id": batch_id,
             "created_at": datetime.now(timezone.utc),
         }
 
-        product = introduce_product_bad_data(product, all_categories)
-        products.append(product)
+        bad_product_data = introduce_bad_product_data(new_product, all_categories)
+        products_data.append(bad_product_data)
 
-    return products
-    
-# def generate(batch_id: str) -> list[dict]:
-#     """Generate 5-10 product documents."""
-#     count = random.randint(PRODUCTS_MIN, PRODUCTS_MAX)
-#     products = []
-
-#     for _ in range(count):
-#         category = random.choice(list(PRODUCT_CATEGORIES.keys()))
-#         products.append({
-#             "product_id": f"PROD{random.randint(1000, 9999)}",
-#             "product_name": random.choice(PRODUCT_CATEGORIES[category]),
-#             "category": category,
-#             "price": round(random.uniform(50, 15000), 2),
-#             "batch_id": batch_id,
-#             "created_at": datetime.now(timezone.utc),
-#         })
-
-#     return products
+    return products_data
