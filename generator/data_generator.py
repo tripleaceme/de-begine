@@ -11,14 +11,12 @@ Usage:
 import os
 import sys
 
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from pymongo import MongoClient
 
 from config.settings import MONGO_URI, MONGO_DB, MONGO_COLLECTIONS, generate_batch_id
 from generator import faker_customers, faker_products, faker_orders
-
 
 def run_pipeline():
     """Generate customers → products → orders and insert into MongoDB."""
