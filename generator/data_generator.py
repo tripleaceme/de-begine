@@ -43,10 +43,10 @@ def run_pipeline():
         all_customer_ids = db[MONGO_COLLECTIONS["customers"]].distinct("customer_id")
         all_product_ids = db[MONGO_COLLECTIONS["products"]].distinct("product_id")
 
-        # # Generate and insert orders
-        # orders = faker_orders.generate_orders(all_customer_ids, all_product_ids, batch_id)
-        # db[MONGO_COLLECTIONS["orders"]].insert_many(orders)
-        # print(f"  ✓ Inserted {len(orders)} orders")
+        # Generate and insert orders
+        orders = faker_orders.generate_orders(all_customer_ids, all_product_ids, batch_id)
+        db[MONGO_COLLECTIONS["orders"]].insert_many(orders)
+        print(f"  ✓ Inserted {len(orders)} orders")
 
         client.close()
 
