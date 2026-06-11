@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import random
 from datetime import datetime, timezone
 
-from config.settings import PRODUCTS_MIN, PRODUCTS_MAX, PRODUCT_CATEGORIES
+from config.generation_settings import PRODUCTS_MIN, PRODUCTS_MAX, PRODUCT_CATEGORIES
 
 
 def introduce_bad_product_data(product: dict, all_categories: list) -> dict:

@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import psycopg2
 
-from config.settings import POSTGRES_CONFIG, RAW_TABLES
+from config.postgres_settings import POSTGRES_CONFIG, RAW_TABLES
 
 
 def log_counts(counts: dict):

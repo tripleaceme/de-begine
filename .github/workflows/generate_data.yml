@@ -42,11 +42,5 @@ jobs:
           MONGO_DB: ${{ secrets.MONGO_DB }} # mandera_analytics
         run: python -m generator.data_generator
 
-      - name: Send Customer All to MongoDB Atlas
-        env:
-          MONGO_URI: ${{ secrets.MONGO_URI }} # mongodb+srv://<username>:<password>@cluster0.mongodb.net
-          MONGO_DB: ${{ secrets.MONGO_DB }} # mandera_analytics
-        run: python -m generator.customer_all
-     
       - name: Log summary
         run: echo "✓ Data generated at $(date -u '+%Y-%m-%d %H:%M UTC')"

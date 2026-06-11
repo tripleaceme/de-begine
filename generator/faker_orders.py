@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import random
 from datetime import datetime, timezone
 
-from config.settings import ORDERS_MIN, ORDERS_MAX, REGIONS, PAYMENT_STATUSES
+from config.generation_settings import ORDERS_MIN, ORDERS_MAX, REGIONS, PAYMENT_STATUSES
 
 
 # ── Source generation settings (used by generator/) ────────────

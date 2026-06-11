@@ -12,10 +12,8 @@ from datetime import datetime, timezone
 import boto3
 from pymongo import MongoClient
 
-from config.settings import (
-    MONGO_URI,
-    MONGO_DB,
-    MONGO_COLLECTIONS,
+from config.mongo_settings import MONGO_URI, MONGO_DB, MONGO_COLLECTIONS
+from config.minio_settings import (
     MINIO_ENDPOINT,
     MINIO_ACCESS_KEY,
     MINIO_SECRET_KEY,

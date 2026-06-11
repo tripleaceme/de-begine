@@ -3,7 +3,7 @@
 import pandas as pd
 from sqlalchemy import text
 
-from config.settings import RAW_TABLES, STAGING_TABLES
+from config.postgres_settings import RAW_TABLES, STAGING_TABLES
 
 
 def transform(engine):
@@ -56,5 +56,5 @@ def transform(engine):
 
 if __name__ == "__main__":
     from sqlalchemy import create_engine
-    from config.settings import POSTGRES_URL
+    from config.postgres_settings import POSTGRES_URL
     transform(create_engine(POSTGRES_URL))

@@ -12,13 +12,8 @@ import psycopg2
 import psycopg2.extras
 from pymongo import MongoClient
 
-from config.settings import (
-    MONGO_URI,
-    MONGO_DB,
-    MONGO_COLLECTIONS,
-    POSTGRES_CONFIG,
-    RAW_TABLES,
-)
+from config.mongo_settings import MONGO_URI, MONGO_DB, MONGO_COLLECTIONS
+from config.postgres_settings import POSTGRES_CONFIG, RAW_TABLES
 
 # Column order for each raw table
 TABLE_COLUMNS = {

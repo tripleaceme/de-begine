@@ -9,7 +9,7 @@ import os
 
 import psycopg2
 
-from config.settings import POSTGRES_CONFIG
+from config.postgres_settings import POSTGRES_CONFIG
 
 SQL_PATH = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))),

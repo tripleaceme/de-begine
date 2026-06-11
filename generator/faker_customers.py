@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 from faker import Faker
 
-from config.settings import CUSTOMERS_MIN, CUSTOMERS_MAX
+from config.generation_settings import CUSTOMERS_MIN, CUSTOMERS_MAX
 
 fake = Faker()
 

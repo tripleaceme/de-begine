@@ -16,7 +16,8 @@ Checks:
 
 import psycopg2
 
-from config.settings import POSTGRES_CONFIG, PAYMENT_STATUSES
+from config.postgres_settings import POSTGRES_CONFIG
+from config.generation_settings import PAYMENT_STATUSES
 
 
 class ValidationError(Exception):

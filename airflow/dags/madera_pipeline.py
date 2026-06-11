@@ -63,19 +63,19 @@ def _validate_quality(**kwargs):
 
 def _transform_customers(**kwargs):
     from sqlalchemy import create_engine
-    from config.settings import POSTGRES_URL
+    from config.postgres_settings import POSTGRES_URL
     transform_customers(create_engine(POSTGRES_URL))
 
 
 def _transform_products(**kwargs):
     from sqlalchemy import create_engine
-    from config.settings import POSTGRES_URL
+    from config.postgres_settings import POSTGRES_URL
     transform_products(create_engine(POSTGRES_URL))
 
 
 def _transform_orders(**kwargs):
     from sqlalchemy import create_engine
-    from config.settings import POSTGRES_URL
+    from config.postgres_settings import POSTGRES_URL
     transform_orders(create_engine(POSTGRES_URL))
 
 
